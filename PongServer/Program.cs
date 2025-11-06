@@ -1,7 +1,10 @@
-﻿using System.Net;
+using System.Net;
 using System.Net.Sockets;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
+
+[assembly: InternalsVisibleTo("PongTests")]
 
 
 public class PongServer
@@ -11,8 +14,8 @@ public class PongServer
     private bool _gameFull = false;
     private bool _gameStarted = false;
     
-    private TcpClient? _player1Client;
-    private TcpClient? _player2Client;
+    internal TcpClient? _player1Client;
+    internal TcpClient? _player2Client;
     
     private double _player1Top = 300;
     private double _player2Top = 300;
@@ -28,7 +31,7 @@ public class PongServer
         await server.StartServer();
     }
 
-    private async Task BroadcastAsync(string message)
+    internal async Task BroadcastAsync(string message)
     {
         var bytes = System.Text.Encoding.UTF8.GetBytes(message + "\n");
 
@@ -43,7 +46,7 @@ public class PongServer
         }
     }
 
-    private async Task SendtoClientAsync(TcpClient client, string message)
+    internal async Task SendtoClientAsync(TcpClient client, string message)
     {
         if (client.Connected)
         {
@@ -54,7 +57,7 @@ public class PongServer
         }
     }
     
-    private async Task HandleConnectionAsync(TcpClient clientSocket)
+    internal async Task HandleConnectionAsync(TcpClient clientSocket)
     {
         var clientEndPoint = clientSocket.Client.RemoteEndPoint.ToString();
         _players[clientEndPoint] = clientSocket;
