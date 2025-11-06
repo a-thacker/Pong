@@ -1,0 +1,19 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+        x:Class="PongClient.MainWindow"
+        Title="PongClient"
+        CanResize="False">
+
+    <Grid>
+        <Canvas Name="GameCanvas" Background="Black"/>
+        <StackPanel Margin="20">
+            <TextBlock x:Name="Player1Status" Margin="510 15 0 0" Text="Player 1: Waiting..." FontSize="20" FontWeight="Bold"/>
+            <TextBlock x:Name="Player2Status" Margin="510 25 0 0" Text="Player 2: Waiting..." FontSize="20" FontWeight="Bold"/>
+            <TextBlock x:Name="TimerTitle" Margin="495 150 0 0 " Text="" FontSize="50" FontWeight="Bold"/>
+            <TextBlock x:Name="StartTimer" Margin="600 50 0 0" Text="" FontSize="50" FontWeight="Bold"/>
+        </StackPanel>
+    </Grid>
+</Window>
