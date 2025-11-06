@@ -149,11 +149,11 @@ public class PongServer
     
     private async Task StartServer()
     {
-        var ip =  "127.0.0.1";
+        var ip =  "10.26.22.218"; // Macbook IP 
         var port = 6049;
         bool finished = false;
 
-        using var serverSocket = new TcpListener(IPAddress.Parse(ip), port);
+        using var serverSocket = new TcpListener(IPAddress.Any, port);
         serverSocket.Start();
         Console.WriteLine($"Server started on {ip}:{port}");
         

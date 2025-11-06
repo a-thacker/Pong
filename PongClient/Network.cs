@@ -22,7 +22,7 @@ namespace PongClient
             try
             {
                 _client = new TcpClient();
-                string serverIP = GetLocalIPAddress();
+                string serverIP = "10.26.22.218";
 
                 await _client.ConnectAsync(serverIP, 6049);
                 _stream = _client.GetStream();
