@@ -13,7 +13,7 @@
             <TextBlock x:Name="Player1Status" Margin="510 15 0 0" Text="Player 1: Waiting..." FontSize="20" FontWeight="Bold"/>
             <TextBlock x:Name="Player2Status" Margin="510 25 0 0" Text="Player 2: Waiting..." FontSize="20" FontWeight="Bold"/>
             <TextBlock x:Name="TimerTitle" Margin="495 150 0 0 " Text="" FontSize="50" FontWeight="Bold"/>
-            <TextBlock x:Name="StartTimer" Margin="600 50 0 0" Text="" FontSize="50" FontWeight="Bold"/>
+            <TextBlock x:Name="StartTimer" Margin="575 50 0 0" Text="" FontSize="50" FontWeight="Bold"/>
         </StackPanel>
     </Grid>
 </Window>

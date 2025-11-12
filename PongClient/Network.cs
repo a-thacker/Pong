@@ -12,20 +12,31 @@ namespace PongClient
 {
     public class NetworkClient
     {
-        private TcpClient _client;
-        private NetworkStream _stream;
+        private const int ServerPort = 6049;
+        private const int BroadcastPort = 6050;
+
+        private TcpClient? _client;
+        private NetworkStream? _stream;
+        private bool _isConnected = false;
 
         public event Action<string>? MessageReceived;
-
-        public async Task ConnectAsync()
+        
+        public async Task ConnectAsync(string? serverIP = null)
         {
             try
             {
                 _client = new TcpClient();
-                string serverIP = "10.26.22.218";
 
-                await _client.ConnectAsync(serverIP, 6049);
+                if (string.IsNullOrEmpty(serverIP))
+                {
+                    Console.WriteLine("Searching for Pong server");
+                    serverIP = await DiscoverServerAsync() ?? "127.0.0.1"; // What?
+                }
+
+                Console.WriteLine($"Connecting to server at {serverIP}:{ServerPort}");
+                await _client.ConnectAsync(serverIP, ServerPort);
                 _stream = _client.GetStream();
+                _isConnected = true;
 
                 Console.WriteLine("Connected to server!");
 
@@ -42,26 +53,23 @@ namespace PongClient
             if (_client == null || !_client.Connected || _stream == null)
                 return;
 
-            try
-            {
-                byte[] bytes = Encoding.UTF8.GetBytes(message + "\n");
-                await _stream.WriteAsync(bytes, 0, bytes.Length);
-                await _stream.FlushAsync();
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error sending message: {ex.Message}");
-            }
+            
+            byte[] bytes = Encoding.UTF8.GetBytes(message + "\n");
+            await _stream.WriteAsync(bytes, 0, bytes.Length);
+            await _stream.FlushAsync();
+            
         }
-
+        
         public async Task ListenForMessagesAsync()
         {
+            if (_stream == null) return;
             using var reader = new StreamReader(_stream, Encoding.UTF8);
+
             try
             {
-                while (_client.Connected)
+                while (_isConnected && _client?.Connected == true)
                 {
-                    string? message = await reader.ReadLineAsync();
+                    string? message = (await reader.ReadLineAsync())?.Trim();
                     if (message != null)
                     {
                         MessageReceived?.Invoke(message);
@@ -73,13 +81,19 @@ namespace PongClient
                     }
                 }
             }
+            catch (IOException)
+            {
+                Console.WriteLine("Connection lost.");
+            }
             catch (Exception ex)
             {
                 Console.WriteLine($"Error reading from server: {ex.Message}");
             }
+
+            _isConnected = false;
         }
 
-        public TcpClient GetClient() => _client;
+        public TcpClient? GetClient() => _client;
 
         private static string GetLocalIPAddress()
         {
@@ -89,7 +103,37 @@ namespace PongClient
                 if (ip.AddressFamily == AddressFamily.InterNetwork)
                     return ip.ToString();
             }
-            throw new Exception("No network adapters with an IPv4 address in the system!");
+            throw new Exception("No network adapters with an IPv4 address found.");
+        }
+
+        private async Task<string?> DiscoverServerAsync(int timeoutMs = 3000)
+        {
+            using var udpClient = new UdpClient(BroadcastPort);
+            udpClient.Client.ReceiveTimeout = timeoutMs;
+
+            try
+            {
+                Console.WriteLine($"🔎 Listening for UDP broadcast on port {BroadcastPort}...");
+                var result = await udpClient.ReceiveAsync();
+                string msg = Encoding.UTF8.GetString(result.Buffer);
+
+                if (msg.StartsWith("PONG_SERVER:"))
+                {
+                    string[] parts = msg.Split(':');
+                    if (parts.Length >= 3)
+                    {
+                        string ip = parts[1];
+                        Console.WriteLine($"✅ Found server at {ip}");
+                        return ip;
+                    }
+                }
+            }
+            catch (SocketException)
+            {
+                Console.WriteLine("⏱️ No server broadcast received (timed out). Defaulting to localhost.");
+            }
+
+            return null;
         }
     }
 }

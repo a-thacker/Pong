@@ -15,8 +15,10 @@ public partial class MainWindow : Window
     
     private double _leftTop = 300;
     private double _rightTop = 300;
-    private Rectangle _leftPaddle;
-    private Rectangle _rightPaddle;
+    
+    private Rectangle? _leftPaddle;
+    private Rectangle? _rightPaddle;
+    private Ellipse? _ball;
     
     private string? _playerId = "";
 
@@ -70,6 +72,19 @@ public partial class MainWindow : Window
         Canvas.SetTop(_leftPaddle, _leftTop);
         Canvas.SetTop(_rightPaddle, _rightTop);
     }
+
+    private void CreateBall()
+    {
+        _ball = new Ellipse
+        {
+            Width = 30,
+            Height = 30,
+            Fill = Brushes.White
+        };
+        Canvas.SetLeft(_ball, 615);
+        Canvas.SetTop(_ball, 342);
+        GameCanvas.Children.Add(_ball);
+    }
     
     private async void OnKeyDown(object? sender, Avalonia.Input.KeyEventArgs e)
     {
@@ -90,16 +105,18 @@ public partial class MainWindow : Window
     private async void StartSequence()
     {
         TimerTitle.Text = "Starting in";
-        StartTimer.Text = "3";
+        StartTimer.Text = "  3";
         await Task.Delay(TimeSpan.FromSeconds(1));
-        StartTimer.Text = "2";
+        StartTimer.Text = "  2";
         await Task.Delay(TimeSpan.FromSeconds(1));
-        StartTimer.Text = "1";
+        StartTimer.Text = "  1";
         await Task.Delay(TimeSpan.FromSeconds(1));
         StartTimer.Text = "GO!";
         await Task.Delay(TimeSpan.FromSeconds(1));
         TimerTitle.Text = "";
         StartTimer.Text = "";
+        _gameStarted = true;
+        CreateBall();
     }
     
     
@@ -111,6 +128,7 @@ public partial class MainWindow : Window
             if (message.StartsWith("STARTGAME"))
             {
                 Console.WriteLine("Playing start sequence!");
+                Console.WriteLine($"Canvas actual size: {GameCanvas.Bounds.Width} x {GameCanvas.Bounds.Height}");
                 StartSequence();
             }
             
@@ -145,10 +163,12 @@ public partial class MainWindow : Window
             else if (message.Contains("Player1Disconnected"))
             {
                 Player1Status.Text = "Player 1: Waiting...";
+                _gameStarted = false;
             }
             else if (message.Contains("Player2Disconnected"))
             {
                 Player2Status.Text = "Player 2: Waiting...";
+                _gameStarted = false;
             }
             else if (message.Contains("StartGame"))
             {
