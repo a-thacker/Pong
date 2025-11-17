@@ -127,8 +127,8 @@ public partial class MainWindow : Window
         {
             if (message.StartsWith("STARTGAME"))
             {
-                Console.WriteLine("Playing start sequence!");
-                Console.WriteLine($"Canvas actual size: {GameCanvas.Bounds.Width} x {GameCanvas.Bounds.Height}");
+                //Console.WriteLine("Playing start sequence!");
+                //Console.WriteLine($"Canvas actual size: {GameCanvas.Bounds.Width} x {GameCanvas.Bounds.Height}");
                 StartSequence();
             }
             

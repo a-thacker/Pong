@@ -3,8 +3,6 @@ using System.Net.Sockets;
 using System.Runtime.CompilerServices;
 using System.Text;
 
-[assembly: InternalsVisibleTo("PongTests")]
-
 namespace PongServer
 {
     public class PongServer
@@ -20,8 +18,8 @@ namespace PongServer
 
         
         // Game Variables
-        internal TcpClient? _player1Client;
-        internal TcpClient? _player2Client;
+        private TcpClient? _player1Client;
+        private TcpClient? _player2Client;
 
         private double _player1Top = 300;
         private double _player2Top = 300;
@@ -37,10 +35,9 @@ namespace PongServer
 
         private async Task StartServer()
         {
-            string localIp = GetLocalIPAddress();
+            string localIp = "10.26.22.218";
             Console.WriteLine($"Server started on {localIp}:{Port}");
 
-            // Optional: Broadcast server IP for auto-discovery by clients
             _ = Task.Run(() => BroadcastServerInfo(localIp));
 
             using var listener = new TcpListener(IPAddress.Any, Port);
@@ -53,8 +50,10 @@ namespace PongServer
             }
         }
 
-        internal async Task HandleConnectionAsync(TcpClient clientSocket)
+        public async Task HandleConnectionAsync(TcpClient clientSocket)
         {
+            Console.WriteLine("player is trying to connect!");
+            
             // Store Client Connection in _players
             var clientEndPoint = clientSocket.Client.RemoteEndPoint?.ToString();
             _players[clientEndPoint] = clientSocket;
@@ -109,8 +108,8 @@ namespace PongServer
             {
                 Console.WriteLine($"Error with {clientEndPoint}: {ex.Message}");
             }
-
-            // ==== CLIENT DISCONNECT ====
+            
+            
             clientSocket.Close();
             _players.Remove(clientEndPoint);
             Console.WriteLine($"Client disconnected: {clientEndPoint}");
@@ -156,7 +155,7 @@ namespace PongServer
             }
         }
 
-        internal async Task BroadcastAsync(string message)
+        private async Task BroadcastAsync(string message)
         {
             var bytes = Encoding.UTF8.GetBytes(message + "\n");
 
@@ -171,7 +170,7 @@ namespace PongServer
             }
         }
 
-        internal async Task SendToClientAsync(TcpClient client, string message)
+        private async Task SendToClientAsync(TcpClient client, string message)
         {
             if (!client.Connected) return;
 
@@ -194,17 +193,6 @@ namespace PongServer
                 await udpClient.SendAsync(message, message.Length, endpoint);
                 await Task.Delay(2000);
             }
-        }
-
-        private string GetLocalIPAddress()
-        {
-            var host = Dns.GetHostEntry(Dns.GetHostName());
-            foreach (var ip in host.AddressList)
-            {
-                if (ip.AddressFamily == AddressFamily.InterNetwork)
-                    return ip.ToString();
-            }
-            throw new Exception("No network adapters with an IPv4 address found.");
         }
     }
 }

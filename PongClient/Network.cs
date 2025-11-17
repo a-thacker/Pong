@@ -81,10 +81,6 @@ namespace PongClient
                     }
                 }
             }
-            catch (IOException)
-            {
-                Console.WriteLine("Connection lost.");
-            }
             catch (Exception ex)
             {
                 Console.WriteLine($"Error reading from server: {ex.Message}");
@@ -110,29 +106,21 @@ namespace PongClient
         {
             using var udpClient = new UdpClient(BroadcastPort);
             udpClient.Client.ReceiveTimeout = timeoutMs;
+            
+            Console.WriteLine($"Listening for UDP broadcast on port {BroadcastPort}...");
+            var result = await udpClient.ReceiveAsync();
+            string msg = Encoding.UTF8.GetString(result.Buffer);
 
-            try
+            if (msg.StartsWith("PONG_SERVER:"))
             {
-                Console.WriteLine($"🔎 Listening for UDP broadcast on port {BroadcastPort}...");
-                var result = await udpClient.ReceiveAsync();
-                string msg = Encoding.UTF8.GetString(result.Buffer);
-
-                if (msg.StartsWith("PONG_SERVER:"))
-                {
-                    string[] parts = msg.Split(':');
-                    if (parts.Length >= 3)
-                    {
-                        string ip = parts[1];
-                        Console.WriteLine($"✅ Found server at {ip}");
-                        return ip;
-                    }
+                string[] parts = msg.Split(':');
+                if (parts.Length >= 3)
+                { 
+                    string ip = parts[1];
+                    Console.WriteLine($"Found server at {ip}");
+                    return ip;
                 }
             }
-            catch (SocketException)
-            {
-                Console.WriteLine("⏱️ No server broadcast received (timed out). Defaulting to localhost.");
-            }
-
             return null;
         }
     }
