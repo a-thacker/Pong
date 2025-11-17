@@ -105,6 +105,9 @@ public partial class MainWindow : Window
 
     private async void StartSequence()
     {
+        
+        Console.WriteLine($"Canvas size: {GameCanvas.Bounds.Width} x {GameCanvas.Bounds.Height}");
+
         TimerTitle.Text = "Starting in";
         StartTimer.Text = "  3";
         await Task.Delay(TimeSpan.FromSeconds(1));
