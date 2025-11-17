@@ -4,11 +4,14 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
         x:Class="PongClient.MainWindow"
+        Width="1280"
+        Height="720"
         Title="PongClient"
-        CanResize="False">
+        CanResize="False"
+        WindowStartupLocation="CenterScreen">
 
     <Grid>
-        <Canvas Name="GameCanvas" Background="Black" Width="1280" Height="720"/>
+        <Canvas Name="GameCanvas" Background="Black"/>
         <StackPanel Margin="20">
             <TextBlock x:Name="Player1Status" Margin="510 15 0 0" Text="Player 1: Waiting..." FontSize="20" FontWeight="Bold"/>
             <TextBlock x:Name="Player2Status" Margin="510 25 0 0" Text="Player 2: Waiting..." FontSize="20" FontWeight="Bold"/>
