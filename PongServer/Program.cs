@@ -38,8 +38,6 @@ namespace PongServer
             string localIp = "10.26.22.218";
             Console.WriteLine($"Server started on {localIp}:{Port}");
 
-            _ = Task.Run(() => BroadcastServerInfo(localIp));
-
             using var listener = new TcpListener(IPAddress.Any, Port);
             listener.Start();
 
@@ -178,21 +176,6 @@ namespace PongServer
             byte[] bytes = Encoding.UTF8.GetBytes(message + "\n");
             await stream.WriteAsync(bytes, 0, bytes.Length);
             await stream.FlushAsync();
-        }
-
-        private async Task BroadcastServerInfo(string ip)
-        {
-            using var udpClient = new UdpClient();
-            udpClient.EnableBroadcast = true;
-
-            var message = Encoding.UTF8.GetBytes($"PONG_SERVER:{ip}:{Port}");
-            var endpoint = new IPEndPoint(IPAddress.Broadcast, BroadcastPort);
-
-            while (true)
-            {
-                await udpClient.SendAsync(message, message.Length, endpoint);
-                await Task.Delay(2000);
-            }
         }
     }
 }

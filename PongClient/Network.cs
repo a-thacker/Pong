@@ -13,7 +13,6 @@ namespace PongClient
     public class NetworkClient
     {
         private const int ServerPort = 6049;
-        private const int BroadcastPort = 6050;
 
         private TcpClient? _client;
         private NetworkStream? _stream;
@@ -21,25 +20,18 @@ namespace PongClient
 
         public event Action<string>? MessageReceived;
         
-        public async Task ConnectAsync(string? serverIp = null)
+        public async Task ConnectAsync(string serverIp)
         {
             try
             {
                 _client = new TcpClient();
-
-                if (string.IsNullOrEmpty(serverIp))
-                {
-                    Console.WriteLine("Searching for Pong server");
-                    serverIp = await DiscoverServerAsync();
-                }
-                
                 Console.WriteLine($"Connecting to server at {serverIp}:{ServerPort}");
                 await _client.ConnectAsync(serverIp, ServerPort);
+
                 _stream = _client.GetStream();
                 _isConnected = true;
 
                 Console.WriteLine("Connected to server!");
-
                 _ = ListenForMessagesAsync();
             }
             catch (Exception ex)
@@ -47,6 +39,7 @@ namespace PongClient
                 Console.WriteLine($"Failed to connect: {ex.Message}");
             }
         }
+
 
         public async Task SendAsync(string message)
         {
@@ -100,28 +93,6 @@ namespace PongClient
                     return ip.ToString();
             }
             throw new Exception("No network adapters with an IPv4 address found.");
-        }
-
-        private async Task<string?> DiscoverServerAsync(int timeoutMs = 3000)
-        {
-            using var udpClient = new UdpClient(BroadcastPort);
-            udpClient.Client.ReceiveTimeout = timeoutMs;
-            
-            Console.WriteLine($"Listening for UDP broadcast on port {BroadcastPort}...");
-            var result = await udpClient.ReceiveAsync();
-            string msg = Encoding.UTF8.GetString(result.Buffer);
-
-            if (msg.StartsWith("PONG_SERVER:"))
-            {
-                string[] parts = msg.Split(':');
-                if (parts.Length >= 3)
-                { 
-                    string ip = parts[1];
-                    Console.WriteLine($"Found server at {ip}");
-                    return ip;
-                }
-            }
-            return null;
         }
     }
 }

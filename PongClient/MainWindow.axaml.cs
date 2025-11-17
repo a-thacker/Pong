@@ -10,6 +10,7 @@ namespace PongClient;
 public partial class MainWindow : Window
 {
     private NetworkClient _networkClient;
+    private string _serverIp = "10.26.22.218";
 
     private bool _gameStarted = false;
     
@@ -50,7 +51,7 @@ public partial class MainWindow : Window
 
     private async Task ConnectAndListenAsync()
     {
-        await _networkClient.ConnectAsync();
+        await _networkClient.ConnectAsync(_serverIp);
         _ = _networkClient.ListenForMessagesAsync();
     }
 
