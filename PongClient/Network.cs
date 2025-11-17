@@ -21,20 +21,20 @@ namespace PongClient
 
         public event Action<string>? MessageReceived;
         
-        public async Task ConnectAsync(string? serverIP = null)
+        public async Task ConnectAsync(string? serverIp = null)
         {
             try
             {
                 _client = new TcpClient();
 
-                if (string.IsNullOrEmpty(serverIP))
+                if (string.IsNullOrEmpty(serverIp))
                 {
                     Console.WriteLine("Searching for Pong server");
-                    serverIP = await DiscoverServerAsync() ?? "127.0.0.1"; // What?
+                    serverIp = await DiscoverServerAsync();
                 }
-
-                Console.WriteLine($"Connecting to server at {serverIP}:{ServerPort}");
-                await _client.ConnectAsync(serverIP, ServerPort);
+                
+                Console.WriteLine($"Connecting to server at {serverIp}:{ServerPort}");
+                await _client.ConnectAsync(serverIp, ServerPort);
                 _stream = _client.GetStream();
                 _isConnected = true;
 
