@@ -11,6 +11,7 @@ public partial class MainWindow : Window
 {
     private NetworkClient _networkClient;
     private string _serverIp = "10.26.22.218";
+    //private string _serverIp = "172.16.1.53";
 
     private bool _gameStarted = false;
     
@@ -22,6 +23,9 @@ public partial class MainWindow : Window
     private Ellipse? _ball;
     
     private string? _playerId = "";
+    
+    private string _player1Score = "0";
+    private string _player2Score = "0";
 
     public MainWindow()
     {
@@ -55,10 +59,6 @@ public partial class MainWindow : Window
         _ = _networkClient.ListenForMessagesAsync();
     }
 
-    private void UpdateGame()
-    {
-    }
-    
     private void InitializePaddles()
     {
         _leftPaddle = new Rectangle { Width = 20, Height = 100, Fill = Brushes.White };
@@ -87,6 +87,15 @@ public partial class MainWindow : Window
         GameCanvas.Children.Add(_ball);
     }
     
+    private void UpdateBallPosition(int x, int y)
+    {
+        if (_ball == null)
+            return;
+        
+        Canvas.SetLeft(_ball, x);
+        Canvas.SetTop(_ball, y);
+    }
+    
     private async void OnKeyDown(object? sender, Avalonia.Input.KeyEventArgs e)
     {
         string keyToSend = "None";
@@ -103,9 +112,17 @@ public partial class MainWindow : Window
         await _networkClient.SendAsync(keyToSend);
     }
 
+    private void RemoveBall()
+    {
+        if (_ball != null)
+        {
+            GameCanvas.Children.Remove(_ball);
+            _ball = null;
+        }
+    }
+    
     private async void StartSequence()
     {
-        
         Console.WriteLine($"Canvas size: {GameCanvas.Bounds.Width} x {GameCanvas.Bounds.Height}");
 
         TimerTitle.Text = "Starting in";
@@ -123,6 +140,16 @@ public partial class MainWindow : Window
         CreateBall();
     }
     
+    private async void ScoreSequence(string playerscored)
+    {
+        RemoveBall();
+        TimerTitle.Text = $"Player {playerscored} scored!";
+        await Task.Delay(TimeSpan.FromSeconds(4));
+        TimerTitle.Text = "";
+        await Task.Delay(TimeSpan.FromSeconds(1));
+        //StartSequence();
+    }
+    
     
     private void OnServerMessage(string message)
     {
@@ -134,6 +161,36 @@ public partial class MainWindow : Window
                 //Console.WriteLine("Playing start sequence!");
                 //Console.WriteLine($"Canvas actual size: {GameCanvas.Bounds.Width} x {GameCanvas.Bounds.Height}");
                 StartSequence();
+            }
+
+            if (_gameStarted && message.StartsWith("BALL:"))
+            {
+                string[] parts = message.Split(':');
+                int x = int.Parse(parts[1]);
+                int y = int.Parse(parts[2]);
+                
+                UpdateBallPosition(x, y);
+            }
+            
+            if (_gameStarted && message.StartsWith("SCORE:"))
+            {
+                string[] parts = message.Split(':');
+                string player1Scorefromserver = parts[1];
+                string player2Scorefromserver = parts[2];
+
+                if (player1Scorefromserver != _player1Score)
+                {
+                    _player1Score = player1Scorefromserver;
+                    Player1Score.Text = _player1Score;
+                    ScoreSequence("Player1");
+                }
+                else if (player2Scorefromserver != _player2Score)
+                {
+                    _player2Score = player2Scorefromserver;
+                    Player2Score.Text = _player2Score;
+                    ScoreSequence("Player2");
+                }
+
             }
             
             if (_gameStarted && message.StartsWith("PADDLE:"))

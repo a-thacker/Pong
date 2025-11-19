@@ -13,6 +13,8 @@
     <Grid>
         <Canvas Name="GameCanvas" Background="Black"/>
         <StackPanel Margin="20">
+            <TextBlock x:Name="Player1Score" Margin="20 15 0 0" Text="0" FontSize="20" FontWeight="Bold"/>
+            <TextBlock x:Name="Player2Score" Margin="0 15 20 0" Text="0" FontSize="20" FontWeight="Bold"/>
             <TextBlock x:Name="Player1Status" Margin="510 15 0 0" Text="Player 1: Waiting..." FontSize="20" FontWeight="Bold"/>
             <TextBlock x:Name="Player2Status" Margin="510 25 0 0" Text="Player 2: Waiting..." FontSize="20" FontWeight="Bold"/>
             <TextBlock x:Name="TimerTitle" Margin="495 150 0 0 " Text="" FontSize="50" FontWeight="Bold"/>
