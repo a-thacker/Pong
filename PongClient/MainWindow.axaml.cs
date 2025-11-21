@@ -11,7 +11,8 @@ public partial class MainWindow : Window
 {
     private NetworkClient _networkClient;
 
-    private string _serverIp = "127.0.01";
+    private string _serverIp = "127.0.0.1";
+    private string _serverIp = "10.0.0.81";
     //private string _serverIp = "10.26.22.218"; // SAU
     //private string _serverIp = "172.20.10.3"; // hotspot 
     //private string _serverIp = "172.16.1.53"; // CA

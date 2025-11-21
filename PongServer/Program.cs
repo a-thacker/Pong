@@ -69,7 +69,8 @@ namespace PongServer
 
         private async Task StartServer()
         {
-            string localIp = "127.0.01";
+            //string localIp = "127.0.0.1";
+            string localIp = "10.0.0.81";
             //string localIp = "10.26.22.218"; // SAU
             //string localIp = "172.20.10.3"; // hotspot 
             //string localIp = "172.16.1.53"; // CA
