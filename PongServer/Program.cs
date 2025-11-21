@@ -182,19 +182,34 @@ namespace PongServer
 
             string direction = message.Substring("UPDATE:".Length);
 
-            if (!_gameStarted) return;
+            if (_gamePaused) return;
 
             if (clientSocket == _player1Client)
             {
-                if (direction == "UP") _player1Top -= 35;
-                else if (direction == "DOWN") _player1Top += 35;
+                double next = _player1Top;
+
+                if (direction == "UP") next -= 35;
+                else if (direction == "DOWN") next += 35;
+
+                // Allow slight off-screen, but not excessive
+                if (next > -100 && next < 820)
+                {
+                    _player1Top = next;
+                }
 
                 await BroadcastAsync($"PADDLE:LEFT:{_player1Top}");
             }
             else if (clientSocket == _player2Client)
             {
-                if (direction == "UP") _player2Top -= 35;
-                else if (direction == "DOWN") _player2Top += 35;
+                double next = _player2Top;
+
+                if (direction == "UP") next -= 35;
+                else if (direction == "DOWN") next += 35;
+
+                if (next > -100 && next < 820)
+                {
+                    _player2Top = next;
+                }
 
                 await BroadcastAsync($"PADDLE:RIGHT:{_player2Top}");
             }
@@ -213,7 +228,7 @@ namespace PongServer
         
         private async Task GameLoop()
         {
-            const int tickRateMs = 16; //needs to be between 32 & 64
+            const int tickRateMs = 20;
 
             while (_gameStarted)
             {
@@ -226,7 +241,7 @@ namespace PongServer
 
                 if (_gamePaused)
                 {
-                    await Task.Delay(TimeSpan.FromSeconds(8));
+                    await Task.Delay(TimeSpan.FromSeconds(7));
                     _gamePaused = false;
                 }
             }
@@ -238,6 +253,11 @@ namespace PongServer
                 _player1Score++;
             else
                 _player2Score++;
+            
+            _player1Top = 300;
+            _player2Top = 300;
+            await BroadcastAsync($"PADDLE:LEFT:{_player1Top}");
+            await BroadcastAsync($"PADDLE:RIGHT:{_player1Top}");
             
             await BroadcastAsync($"SCORE:{_player1Score}:{_player2Score}");
             await BroadcastBallPosition();
@@ -267,7 +287,7 @@ namespace PongServer
                 {
                     _ball.VelocityX *= -1; // bounce
                 }
-                else
+                else if (_ball.X - _ball.Radius < -50)
                 { 
                     _gamePaused = true;
                     await UpdateScore("PLAYER2");
@@ -280,7 +300,7 @@ namespace PongServer
                 {
                     _ball.VelocityX *= -1;
                 }
-                else
+                else if (_ball.X + _ball.Radius > 1310)
                 {
                     _gamePaused = true;
                     await UpdateScore("PLAYER1");

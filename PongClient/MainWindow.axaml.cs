@@ -141,7 +141,7 @@ public partial class MainWindow : Window
     {
         _ball.Fill = Brushes.Black;
         TimerTitle.Text = $"Player {playerscored} scored!";
-        await Task.Delay(TimeSpan.FromSeconds(4));
+        await Task.Delay(TimeSpan.FromSeconds(3));
         TimerTitle.Text = "";
         StartSequence();
         await Task.Delay(TimeSpan.FromSeconds(4));
@@ -155,8 +155,7 @@ public partial class MainWindow : Window
         {
             if (message.StartsWith("STARTGAME"))
             {
-                //Console.WriteLine("Playing start sequence!");
-                //Console.WriteLine($"Canvas actual size: {GameCanvas.Bounds.Width} x {GameCanvas.Bounds.Height}");
+                Console.WriteLine($"Canvas actual size: {GameCanvas.Bounds.Width} x {GameCanvas.Bounds.Height}");
                 StartSequence();
             }
 
