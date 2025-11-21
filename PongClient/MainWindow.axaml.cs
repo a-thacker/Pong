@@ -10,8 +10,11 @@ namespace PongClient;
 public partial class MainWindow : Window
 {
     private NetworkClient _networkClient;
-    private string _serverIp = "10.26.22.218";
-    //private string _serverIp = "172.16.1.53";
+
+    private string _serverIp = "127.0.01";
+    //private string _serverIp = "10.26.22.218"; // SAU
+    //private string _serverIp = "172.20.10.3"; // hotspot 
+    //private string _serverIp = "172.16.1.53"; // CA
 
     private bool _gameStarted = false;
     
@@ -80,10 +83,10 @@ public partial class MainWindow : Window
         {
             Width = 30,
             Height = 30,
-            Fill = Brushes.White
+            Fill = Brushes.Black
         };
-        Canvas.SetLeft(_ball, 615);
-        Canvas.SetTop(_ball, 342);
+        Canvas.SetLeft(_ball, 615); //615?
+        Canvas.SetTop(_ball, 342); //342?
         GameCanvas.Children.Add(_ball);
     }
     
@@ -111,49 +114,43 @@ public partial class MainWindow : Window
 
         await _networkClient.SendAsync(keyToSend);
     }
-
-    private void RemoveBall()
-    {
-        if (_ball != null)
-        {
-            GameCanvas.Children.Remove(_ball);
-            _ball = null;
-        }
-    }
     
     private async void StartSequence()
     {
-        Console.WriteLine($"Canvas size: {GameCanvas.Bounds.Width} x {GameCanvas.Bounds.Height}");
+        //Console.WriteLine($"Canvas size: {GameCanvas.Bounds.Width} x {GameCanvas.Bounds.Height}");
+        if (_ball == null)
+        {
+            CreateBall();
+        }
 
-        TimerTitle.Text = "Starting in";
-        StartTimer.Text = "  3";
+        TimerTitle.Text = "Starting in 3";
         await Task.Delay(TimeSpan.FromSeconds(1));
-        StartTimer.Text = "  2";
+        TimerTitle.Text = "Starting in 2";
         await Task.Delay(TimeSpan.FromSeconds(1));
-        StartTimer.Text = "  1";
+        TimerTitle.Text = "Starting in 1";
         await Task.Delay(TimeSpan.FromSeconds(1));
-        StartTimer.Text = "GO!";
+        TimerTitle.Text = "GO!";
         await Task.Delay(TimeSpan.FromSeconds(1));
         TimerTitle.Text = "";
-        StartTimer.Text = "";
         _gameStarted = true;
-        CreateBall();
+        _ball.Fill = Brushes.White;
+        
     }
     
-    private async void ScoreSequence(string playerscored)
+    private async Task ScoreSequence(string playerscored)
     {
-        RemoveBall();
+        _ball.Fill = Brushes.Black;
         TimerTitle.Text = $"Player {playerscored} scored!";
         await Task.Delay(TimeSpan.FromSeconds(4));
         TimerTitle.Text = "";
-        await Task.Delay(TimeSpan.FromSeconds(1));
-        //StartSequence();
+        StartSequence();
+        await Task.Delay(TimeSpan.FromSeconds(4));
     }
     
     
     private void OnServerMessage(string message)
     {
-        Console.WriteLine(message);
+        //Console.WriteLine(message);
         Dispatcher.UIThread.Post(() =>
         {
             if (message.StartsWith("STARTGAME"))

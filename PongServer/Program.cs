@@ -69,8 +69,10 @@ namespace PongServer
 
         private async Task StartServer()
         {
-            string localIp = "10.26.22.218";
-            //string localIp = "172.16.1.53";
+            string localIp = "127.0.01";
+            //string localIp = "10.26.22.218"; // SAU
+            //string localIp = "172.20.10.3"; // hotspot 
+            //string localIp = "172.16.1.53"; // CA
             Console.WriteLine($"Server started on {localIp}:{Port}");
 
             using var listener = new TcpListener(IPAddress.Any, Port);
@@ -200,6 +202,12 @@ namespace PongServer
 
         private async Task BroadcastBallPosition()
         {
+            if (_gamePaused)
+            {
+                _ball.X = 640;
+                _ball.Y = 360;
+            }
+            
             await BroadcastAsync($"BALL:{_ball.X}:{_ball.Y}");
         }
         
@@ -218,7 +226,7 @@ namespace PongServer
 
                 if (_gamePaused)
                 {
-                    await Task.Delay(TimeSpan.FromSeconds(4));
+                    await Task.Delay(TimeSpan.FromSeconds(8));
                     _gamePaused = false;
                 }
             }
@@ -232,10 +240,11 @@ namespace PongServer
                 _player2Score++;
             
             await BroadcastAsync($"SCORE:{_player1Score}:{_player2Score}");
+            await BroadcastBallPosition();
         }
         
 
-        private async Task UpdateBall()  // <-- NOW async
+        private async Task UpdateBall()
         {
             _ball.Move();
 
@@ -244,11 +253,13 @@ namespace PongServer
                 _ball.VelocityY *= -1;
             }
 
-            // Side wall collisions
+            // Side wall collisions for testing
+            /*
             if (_ball.X <= 0 || _ball.X >= 1250)
             {
                 _ball.VelocityX *= -1;
             }
+            */
             
             if (_ball.X - _ball.Radius <= 50) // paddle near x=50
             {
@@ -258,12 +269,12 @@ namespace PongServer
                 }
                 else
                 { 
-                    // _gamePaused = true;
-                    //await UpdateScore("PLAYER2");
+                    _gamePaused = true;
+                    await UpdateScore("PLAYER2");
                 }
             }
 
-            if (_ball.X + _ball.Radius >= 1220) // paddle near x=1230
+            if (_ball.X + _ball.Radius >= 1220) // paddle near x=1230 CHANGE ****
             {
                 if (_ball.Y >= _player2Top && _ball.Y <= _player2Top + 150)
                 {
@@ -271,8 +282,8 @@ namespace PongServer
                 }
                 else
                 {
-                    //_gamePaused = true;
-                    //await UpdateScore("PLAYER1");
+                    _gamePaused = true;
+                    await UpdateScore("PLAYER1");
                 }
             }
         }

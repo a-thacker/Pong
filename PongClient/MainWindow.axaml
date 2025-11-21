@@ -13,12 +13,50 @@
     <Grid>
         <Canvas Name="GameCanvas" Background="Black"/>
         <StackPanel Margin="20">
-            <TextBlock x:Name="Player1Score" Margin="20 15 0 0" Text="0" FontSize="20" FontWeight="Bold"/>
-            <TextBlock x:Name="Player2Score" Margin="0 15 20 0" Text="0" FontSize="20" FontWeight="Bold"/>
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+
+                <TextBlock x:Name="Player1Score"
+                           Text="0"
+                           FontSize="50"
+                           FontWeight="Bold"
+                           HorizontalAlignment="Left"/>
+
+                <TextBlock x:Name="Player2Score"
+                           Grid.Column="1"
+                           Text="0"
+                           FontSize="50"
+                           FontWeight="Bold"
+                           HorizontalAlignment="Right"/>
+            </Grid>
             <TextBlock x:Name="Player1Status" Margin="510 15 0 0" Text="Player 1: Waiting..." FontSize="20" FontWeight="Bold"/>
             <TextBlock x:Name="Player2Status" Margin="510 25 0 0" Text="Player 2: Waiting..." FontSize="20" FontWeight="Bold"/>
-            <TextBlock x:Name="TimerTitle" Margin="495 150 0 0 " Text="" FontSize="50" FontWeight="Bold"/>
-            <TextBlock x:Name="StartTimer" Margin="575 50 0 0" Text="" FontSize="50" FontWeight="Bold"/>
         </StackPanel>
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="*" />
+                    <RowDefinition Height= "Auto" />
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
+                
+                <TextBlock x:Name="TimerTitle"
+                           Grid.Row="1"
+                           Text="" 
+                           FontSize="50" 
+                           FontWeight="Bold"
+                           HorizontalAlignment="Center"
+                           VerticalAlignment="Center"/>
+                
+                <TextBlock x:Name="StartTimer"
+                           Grid.Row="2"
+                           Text="" 
+                           FontSize="50" 
+                           FontWeight="Bold"
+                           HorizontalAlignment="Center"
+                           VerticalAlignment="Center"/>
+            </Grid>
     </Grid>
 </Window>
