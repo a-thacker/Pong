@@ -1,6 +1,5 @@
 using System;
 using System.IO;
-using System.Net;
 using System.Net.Sockets;
 using System.Runtime.CompilerServices;
 using System.Text;
@@ -16,7 +15,7 @@ namespace PongClient
 
         private TcpClient? _client;
         private NetworkStream? _stream;
-        private bool _isConnected = false;
+        private bool _isConnected;
 
         public event Action<string>? MessageReceived;
         
@@ -80,19 +79,6 @@ namespace PongClient
             }
 
             _isConnected = false;
-        }
-
-        public TcpClient? GetClient() => _client;
-
-        private static string GetLocalIPAddress()
-        {
-            var host = Dns.GetHostEntry(Dns.GetHostName());
-            foreach (var ip in host.AddressList)
-            {
-                if (ip.AddressFamily == AddressFamily.InterNetwork)
-                    return ip.ToString();
-            }
-            throw new Exception("No network adapters with an IPv4 address found.");
         }
     }
 }

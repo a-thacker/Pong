@@ -9,18 +9,17 @@ namespace PongClient;
 
 public partial class MainWindow : Window
 {
-    private NetworkClient _networkClient;
+    private readonly NetworkClient _networkClient;
 
-    //private string _serverIp = "127.0.0.1";
-    private string _serverIp = "10.0.0.81";
-    //private string _serverIp = "10.26.22.218"; // SAU
-    //private string _serverIp = "172.20.10.3"; // hotspot 
-    //private string _serverIp = "172.16.1.53"; // CA
-
-    private bool _gameStarted = false;
+    private readonly string _serverIp = "10.0.0.81";
+    /* INCLUDE YOUR IP
+    //private string _serverIp = "10.26.22.218"; 
+    */
     
-    private double _leftTop = 300;
-    private double _rightTop = 300;
+    private bool _gameStarted;
+    
+    private readonly double _leftTop = 300;
+    private readonly double _rightTop = 300;
     
     private Rectangle? _leftPaddle;
     private Rectangle? _rightPaddle;
@@ -30,6 +29,7 @@ public partial class MainWindow : Window
     
     private string _player1Score = "0";
     private string _player2Score = "0";
+    private bool _winner;
 
     public MainWindow()
     {
@@ -45,16 +45,6 @@ public partial class MainWindow : Window
 
         this.KeyDown += OnKeyDown;
 
-        
-        // Does not need this timer. The game updates when an action is preformed and a message is sent from the server.
-        /*
-        var timer = new DispatcherTimer
-        {
-            Interval = TimeSpan.FromMilliseconds(16)
-        };
-        timer.Tick += (s, e) => UpdateGame();
-        timer.Start();
-        */
     }
 
     private async Task ConnectAndListenAsync()
@@ -86,8 +76,8 @@ public partial class MainWindow : Window
             Height = 30,
             Fill = Brushes.Black
         };
-        Canvas.SetLeft(_ball, 615); //615?
-        Canvas.SetTop(_ball, 342); //342?
+        Canvas.SetLeft(_ball, 615);
+        Canvas.SetTop(_ball, 342);
         GameCanvas.Children.Add(_ball);
     }
     
@@ -116,14 +106,8 @@ public partial class MainWindow : Window
         await _networkClient.SendAsync(keyToSend);
     }
     
-    private async void StartSequence()
+    private async Task StartSequence()
     {
-        //Console.WriteLine($"Canvas size: {GameCanvas.Bounds.Width} x {GameCanvas.Bounds.Height}");
-        if (_ball == null)
-        {
-            CreateBall();
-        }
-
         TimerTitle.Text = "Starting in 3";
         await Task.Delay(TimeSpan.FromSeconds(1));
         TimerTitle.Text = "Starting in 2";
@@ -134,30 +118,37 @@ public partial class MainWindow : Window
         await Task.Delay(TimeSpan.FromSeconds(1));
         TimerTitle.Text = "";
         _gameStarted = true;
-        _ball.Fill = Brushes.White;
         
+        if (_ball == null)
+            CreateBall();
+        
+        if ( _ball != null)
+            _ball.Fill = Brushes.White;
     }
     
-    private async Task ScoreSequence(string playerscored)
+    private async Task ScoreSequence(string playerScored)
     {
-        _ball.Fill = Brushes.Black;
-        TimerTitle.Text = $"Player {playerscored} scored!";
+        if (_ball != null)
+            _ball.Fill = Brushes.Black;
+        
+        TimerTitle.Text = $"{playerScored} scored!";
         await Task.Delay(TimeSpan.FromSeconds(3));
         TimerTitle.Text = "";
-        StartSequence();
-        await Task.Delay(TimeSpan.FromSeconds(4));
+        if (!_winner)
+        {
+            await StartSequence();
+            await Task.Delay(TimeSpan.FromSeconds(4));
+        }
     }
     
-    
-    private void OnServerMessage(string message)
+    private async void OnServerMessage(string message)
     {
-        //Console.WriteLine(message);
-        Dispatcher.UIThread.Post(() =>
+        await Dispatcher.UIThread.InvokeAsync(async() =>
         {
             if (message.StartsWith("STARTGAME"))
             {
                 Console.WriteLine($"Canvas actual size: {GameCanvas.Bounds.Width} x {GameCanvas.Bounds.Height}");
-                StartSequence();
+                await StartSequence();
             }
 
             if (_gameStarted && message.StartsWith("BALL:"))
@@ -169,23 +160,30 @@ public partial class MainWindow : Window
                 UpdateBallPosition(x, y);
             }
             
-            if (_gameStarted && message.StartsWith("SCORE:"))
+            if (message.StartsWith("WINNER"))
+            {
+                _winner = true;
+                string[] parts = message.Split(':');
+                TimerTitle.Text = $"{parts[1]} WINS!";
+            }
+            
+            else if (_gameStarted && message.StartsWith("SCORE:"))
             {
                 string[] parts = message.Split(':');
-                string player1Scorefromserver = parts[1];
-                string player2Scorefromserver = parts[2];
+                string player1ScoreFromServer = parts[1];
+                string player2ScoreFromServer = parts[2];
 
-                if (player1Scorefromserver != _player1Score)
+                if (player1ScoreFromServer != _player1Score)
                 {
-                    _player1Score = player1Scorefromserver;
+                    _player1Score = player1ScoreFromServer;
                     Player1Score.Text = _player1Score;
-                    ScoreSequence("Player1");
+                    await ScoreSequence("Player 1");
                 }
-                else if (player2Scorefromserver != _player2Score)
+                else if (player2ScoreFromServer != _player2Score)
                 {
-                    _player2Score = player2Scorefromserver;
+                    _player2Score = player2ScoreFromServer;
                     Player2Score.Text = _player2Score;
-                    ScoreSequence("Player2");
+                    await ScoreSequence("Player 2");
                 }
 
             }
@@ -198,10 +196,22 @@ public partial class MainWindow : Window
                 string side = parts[1];
                 double newTop = double.Parse(parts[2]);
 
+                
+                
+                //Keep this version of hte if-else loop
+                if (side == "LEFT" && _leftPaddle != null)
+                    Canvas.SetTop(_leftPaddle, newTop);
+                else if (side != "LEFT" && _rightPaddle != null)
+                    Canvas.SetTop(_rightPaddle, newTop);
+
+                //Canvas.SetTop(side == "LEFT" ? _leftPaddle : _rightPaddle, newTop);
+                
+                /*
                 if (side == "LEFT")
                     Canvas.SetTop(_leftPaddle, newTop);
                 else
                     Canvas.SetTop(_rightPaddle, newTop);
+                    */
             }
             
             if (message.StartsWith("YouAre:"))

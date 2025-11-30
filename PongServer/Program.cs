@@ -1,6 +1,5 @@
 using System.Net;
 using System.Net.Sockets;
-using System.Runtime.CompilerServices;
 using System.Text;
 
 namespace PongServer
@@ -14,7 +13,13 @@ namespace PongServer
         
         public double Radius { get; set; }
 
-        public Ball(double startX, double startY, double startVelocityX, double startVelocityY, double radius)
+        public Ball(
+            double startX,
+            double startY,
+            double startVelocityX,
+            double startVelocityY,
+            double radius)
+        
         {
             X = startX;
             Y =  startY;
@@ -38,22 +43,22 @@ namespace PongServer
         // Keeps track of Client IP and ports
         private readonly Dictionary<string, TcpClient> _players = new();
         
-        private bool _gameFull = false;
-        private bool _gameStarted = false;
-        private bool _gamePaused = false;
+        private bool _gameFull;
+        private bool _gameStarted;
+        private bool _gamePaused;
 
         
-        // Game Variables
+        // Authoritative Game Variables
         private TcpClient? _player1Client;
         private TcpClient? _player2Client;
 
         private double _player1Top = 300;
         private double _player2Top = 300;
 
-        private int _player1Score = 0;
-        private int _player2Score = 0;
+        private int _player1Score;
+        private int _player2Score;
         
-        private Ball _ball = new Ball(
+        private readonly Ball _ball = new Ball(
             startX: 640,
             startY: 360,
             startVelocityX: 6,
@@ -69,11 +74,8 @@ namespace PongServer
 
         private async Task StartServer()
         {
-            //string localIp = "127.0.0.1";
             string localIp = "10.0.0.81";
             //string localIp = "10.26.22.218"; // SAU
-            //string localIp = "172.20.10.3"; // hotspot 
-            //string localIp = "172.16.1.53"; // CA
             Console.WriteLine($"Server started on {localIp}:{Port}");
 
             using var listener = new TcpListener(IPAddress.Any, Port);
@@ -86,7 +88,7 @@ namespace PongServer
             }
         }
 
-        public async Task HandleConnectionAsync(TcpClient clientSocket)
+        private async Task HandleConnectionAsync(TcpClient clientSocket)
         {
             Console.WriteLine("player is trying to connect!");
             
@@ -167,14 +169,9 @@ namespace PongServer
                 await BroadcastAsync("Player2Disconnected");
             }
 
-            // Reset game state so it can restart cleanly
-            _gameFull = false;
-            _gameStarted = false;
-            _gamePaused = false;
-            _player1Score = 0; // Keep score if only one player disconnects? Keep score in dictionary?
-            _player2Score = 0;
-            _player1Top = 300;
-            _player2Top = 300;
+            // Reset game state variables so it can restart cleanly
+            RestartGame();
+
         }
 
         private async Task HandleClientMessage(TcpClient clientSocket, string message)
@@ -191,8 +188,8 @@ namespace PongServer
 
                 if (direction == "UP") next -= 35;
                 else if (direction == "DOWN") next += 35;
-
-                // Allow slight off-screen, but not excessive
+                
+                
                 if (next > -100 && next < 820)
                 {
                     _player1Top = next;
@@ -216,6 +213,22 @@ namespace PongServer
             }
         }
 
+        private async void RestartGame()
+        {
+            _gamePaused = false;
+            _player1Score = 0;
+            _player2Score = 0;
+            _player1Top = 300;
+            _player2Top = 300;
+            
+            _ball.X = 640;
+            _ball.Y = 360;
+
+            _gameStarted = true;
+            await BroadcastAsync("SCORE:0:0");
+            await BroadcastBallPosition();
+        }
+        
         private async Task BroadcastBallPosition()
         {
             if (_gamePaused)
@@ -226,18 +239,22 @@ namespace PongServer
             
             await BroadcastAsync($"BALL:{_ball.X}:{_ball.Y}");
         }
-        
+
         private async Task GameLoop()
         {
             const int tickRateMs = 20;
 
-            while (_gameStarted)
+            while (true)
             {
-                if (!_gamePaused)
+                if (_gameStarted && !_gamePaused)
                 {
                     await UpdateBall();
                     await BroadcastBallPosition();
                     await Task.Delay(tickRateMs);
+                }
+                else
+                {
+                    await Task.Delay(50);
                 }
 
                 if (_gamePaused)
@@ -250,10 +267,24 @@ namespace PongServer
 
         private async Task UpdateScore(string player)
         {
+            
             if (player == "PLAYER1")
                 _player1Score++;
             else
                 _player2Score++;
+            
+            if (_player1Score == 2)
+            {
+                RestartGame();
+                await BroadcastAsync("WINNER:Player 1");
+                return;
+            }
+            else if (_player2Score == 2)
+            {
+                RestartGame();
+                await BroadcastAsync("WINNER:Player 2");
+                return;
+            }
             
             _player1Top = 300;
             _player2Top = 300;
@@ -282,11 +313,11 @@ namespace PongServer
             }
             */
             
-            if (_ball.X - _ball.Radius <= 50) // paddle near x=50
+            if (_ball.X - _ball.Radius <= 50)
             {
-                if (_ball.Y >= _player1Top && _ball.Y <= _player1Top + 150) // paddle height 150
+                if (_ball.Y >= _player1Top && _ball.Y <= _player1Top + 150)
                 {
-                    _ball.VelocityX *= -1; // bounce
+                    _ball.VelocityX *= -1;
                 }
                 else if (_ball.X - _ball.Radius < -50)
                 { 
@@ -295,7 +326,7 @@ namespace PongServer
                 }
             }
 
-            if (_ball.X + _ball.Radius >= 1220) // paddle near x=1230 CHANGE ****
+            if (_ball.X + _ball.Radius >= 1220) // paddle near x=1230 CHANGE
             {
                 if (_ball.Y >= _player2Top && _ball.Y <= _player2Top + 150)
                 {
