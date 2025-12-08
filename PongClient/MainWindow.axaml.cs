@@ -11,10 +11,13 @@ public partial class MainWindow : Window
 {
     private readonly NetworkClient _networkClient;
 
-    private readonly string _serverIp = "10.0.0.81";
+    //private readonly string _serverIp = "10.0.0.81";
     /* INCLUDE YOUR IP
-    //private string _serverIp = "10.26.22.218"; 
+    
     */
+    
+    private string _serverIp = "10.26.21.55"; 
+    
     
     private bool _gameStarted;
     

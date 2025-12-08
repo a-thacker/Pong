@@ -74,8 +74,8 @@ namespace PongServer
 
         private async Task StartServer()
         {
-            string localIp = "10.0.0.81";
-            //string localIp = "10.26.22.218"; // SAU
+            string localIp = "10.26.21.55";
+            //string localIp = "127.0.0.1"; // SAU
             Console.WriteLine($"Server started on {localIp}:{Port}");
 
             using var listener = new TcpListener(IPAddress.Any, Port);
@@ -273,13 +273,13 @@ namespace PongServer
             else
                 _player2Score++;
             
-            if (_player1Score == 2)
+            if (_player1Score == 10)
             {
                 RestartGame();
                 await BroadcastAsync("WINNER:Player 1");
                 return;
             }
-            else if (_player2Score == 2)
+            else if (_player2Score == 10)
             {
                 RestartGame();
                 await BroadcastAsync("WINNER:Player 2");
